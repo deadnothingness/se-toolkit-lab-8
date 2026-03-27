@@ -15,12 +15,16 @@
   "channels": {
     "sendProgress": true,
     "sendToolHints": false,
-    "sendMaxRetries": 3
+    "sendMaxRetries": 3,
+    "webchat": {
+      "enabled": true,
+      "allow_from": ["*"]
+    }
   },
   "providers": {
     "custom": {
-      "apiKey": "sk-d1108e79c70d40f29bd300969cb4d854",
-      "apiBase": "http://localhost:42005/v1",
+      "apiKey": "",
+      "apiBase": "",
       "extraHeaders": null
     }
   },
@@ -43,10 +47,10 @@
     "mcpServers": {
       "lms": {
         "command": "uv",
-        "args": ["--directory", "/mnt/d/inno/software-engineering-toolkit/se-toolkit-lab-8/nanobot", "run", "python", "-m", "mcp_lms"],
+        "args": ["run", "--directory", "/app/mcp", "python", "-m", "mcp_lms"],
         "env": {
-          "NANOBOT_LMS_BACKEND_URL": "http://localhost:42002",
-          "NANOBOT_LMS_API_KEY": "lms-api-key-change-me"
+          "NANOBOT_LMS_BACKEND_URL": "",
+          "NANOBOT_LMS_API_KEY": ""
         }
       }
     }

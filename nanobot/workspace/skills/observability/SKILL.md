@@ -35,6 +35,39 @@ message:"connection refused"
 
 ## Tool Usage Strategy
 
+### When the user asks "What went wrong?" or "Check system health"
+
+**Execute this investigation flow in sequence:**
+
+1. **Check for recent errors** → Call `logs_error_count` with `window_minutes=5`
+   - If no errors found → Report "System looks healthy, no recent errors"
+   - If errors found → Continue to step 2
+
+2. **Get error details** → Call `logs_search` with query `_time:5m AND level:error`
+   - Look for error messages and any trace IDs in the logs
+   - Extract trace ID if present (format: hex string like "abc123...")
+
+3. **Fetch the trace** → If you found a trace ID, call `traces_get` with that ID
+   - Identify which service failed and at which span
+   - Note the error message in the span tags
+
+4. **Summarize findings** → Report in this format:
+   ```
+   **Investigation Summary:**
+   
+   **Log Evidence:**
+   - Found X errors in the last 5 minutes
+   - Key error: <error message>
+   - Affected service: <service name>
+   
+   **Trace Evidence:**
+   - Trace ID: <id>
+   - Failed span: <operation name>
+   - Root cause: <brief description>
+   
+   **Recommendation:** <what to fix>
+   ```
+
 ### When the user asks about errors
 
 1. **General question** ("Any errors in the last hour?") → Use `logs_error_count` with `window_minutes=60`

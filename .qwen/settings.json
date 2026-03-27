@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl *)",
+      "Bash(test *)",
+      "Bash(uv *)",
+      "Bash(docker-compose *)",
+      "Bash(docker compose up *)",
+      "Bash(docker compose *)",
+      "Bash(ls *)",
+      "Bash(git submodule *)",
+      "Bash(docker ps *)",
+      "Bash(sleep *)",
+      "Read(//home/deadnothingness/.nanobot/**)",
+      "Bash(mkdir *)"
+    ]
+  },
+  "$version": 3
+}

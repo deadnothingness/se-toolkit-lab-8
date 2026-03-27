@@ -12,7 +12,10 @@
       "Bash(docker ps *)",
       "Bash(sleep *)",
       "Read(//home/deadnothingness/.nanobot/**)",
-      "Bash(mkdir *)"
+      "Bash(mkdir *)",
+      "Bash(docker exec *)",
+      "Bash(docker logs *)",
+      "Bash(timeout *)"
     ]
   },
   "$version": 3

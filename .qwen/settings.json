@@ -16,7 +16,8 @@
       "Bash(docker exec *)",
       "Bash(docker logs *)",
       "Bash(timeout *)",
-      "Read(//home/autochecker/se-toolkit-lab-8/nanobot/**)"
+      "Read(//home/autochecker/se-toolkit-lab-8/nanobot/**)",
+      "Bash(python3 *)"
     ]
   },
   "$version": 3

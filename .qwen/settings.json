@@ -15,7 +15,8 @@
       "Bash(mkdir *)",
       "Bash(docker exec *)",
       "Bash(docker logs *)",
-      "Bash(timeout *)"
+      "Bash(timeout *)",
+      "Read(//home/autochecker/se-toolkit-lab-8/nanobot/**)"
     ]
   },
   "$version": 3

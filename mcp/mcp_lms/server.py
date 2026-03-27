@@ -13,11 +13,25 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 from pydantic import BaseModel, Field
 
-from mcp_lms.client import LMSClient
+from mcp_lms.client import LMSClient, ObservabilityClient
 
 _base_url: str = ""
 
 server = Server("lms")
+
+# ---------------------------------------------------------------------------
+# Observability configuration
+# ---------------------------------------------------------------------------
+
+_logs_url: str = ""
+_traces_url: str = ""
+
+
+def _obs_client() -> ObservabilityClient:
+    return ObservabilityClient(
+        logs_url=_logs_url or os.environ.get("VICTORIALOGS_URL", "http://victorialogs:9428"),
+        traces_url=_traces_url or os.environ.get("VICTORIATRACES_URL", "http://victoriatraces:10428"),
+    )
 
 # ---------------------------------------------------------------------------
 # Input models
@@ -36,6 +50,41 @@ class _TopLearnersQuery(_LabQuery):
     limit: int = Field(
         default=5, ge=1, description="Max learners to return (default 5)."
     )
+
+
+# ---------------------------------------------------------------------------
+# Observability input models
+# ---------------------------------------------------------------------------
+
+
+class _LogsSearchQuery(BaseModel):
+    query: str = Field(
+        default="",
+        description="LogsQL query string. Example: '_stream:{service=\"backend\"} AND level:error'",
+    )
+    limit: int = Field(default=100, ge=1, le=1000, description="Max entries to return.")
+
+
+class _LogsErrorCountQuery(BaseModel):
+    service: str = Field(
+        default="",
+        description="Service name to filter (empty = all services).",
+    )
+    window_minutes: int = Field(
+        default=60, ge=1, le=1440, description="Time window in minutes (default 60)."
+    )
+
+
+class _TracesListQuery(BaseModel):
+    service: str = Field(
+        default="",
+        description="Service name to filter (empty = all services).",
+    )
+    limit: int = Field(default=20, ge=1, le=100, description="Max traces to return.")
+
+
+class _TracesGetQuery(BaseModel):
+    trace_id: str = Field(description="The trace ID to fetch.")
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +162,35 @@ async def _sync_pipeline(_args: _NoArgs) -> list[TextContent]:
 
 
 # ---------------------------------------------------------------------------
+# Observability tool handlers
+# ---------------------------------------------------------------------------
+
+
+async def _logs_search(args: _LogsSearchQuery) -> list[TextContent]:
+    entries = await _obs_client().logs_search(query=args.query, limit=args.limit)
+    return _text(entries)
+
+
+async def _logs_error_count(args: _LogsErrorCountQuery) -> list[TextContent]:
+    counts = await _obs_client().logs_error_count(
+        service=args.service, window_minutes=args.window_minutes
+    )
+    return _text(counts)
+
+
+async def _traces_list(args: _TracesListQuery) -> list[TextContent]:
+    traces = await _obs_client().traces_list(service=args.service, limit=args.limit)
+    return _text(traces)
+
+
+async def _traces_get(args: _TracesGetQuery) -> list[TextContent]:
+    trace = await _obs_client().traces_get(args.trace_id)
+    if trace is None:
+        return [TextContent(type="text", text=f"Trace not found: {args.trace_id}")]
+    return _text(trace)
+
+
+# ---------------------------------------------------------------------------
 # Registry: tool name -> (input model, handler, Tool definition)
 # ---------------------------------------------------------------------------
 
@@ -185,6 +263,35 @@ _register(
     _sync_pipeline,
 )
 
+# ---------------------------------------------------------------------------
+# Observability tools registry
+# ---------------------------------------------------------------------------
+
+_register(
+    "logs_search",
+    "Search VictoriaLogs using LogsQL. Returns log entries matching the query.",
+    _LogsSearchQuery,
+    _logs_search,
+)
+_register(
+    "logs_error_count",
+    "Count errors per service over a time window. Returns error counts grouped by service.",
+    _LogsErrorCountQuery,
+    _logs_error_count,
+)
+_register(
+    "traces_list",
+    "List recent traces from VictoriaTraces. Returns trace summaries with span counts.",
+    _TracesListQuery,
+    _traces_list,
+)
+_register(
+    "traces_get",
+    "Fetch a specific trace by ID. Returns full trace with all spans and timing data.",
+    _TracesGetQuery,
+    _traces_get,
+)
+
 
 # ---------------------------------------------------------------------------
 # MCP handlers
@@ -216,8 +323,10 @@ async def call_tool(name: str, arguments: dict[str, Any] | None) -> list[TextCon
 
 
 async def main(base_url: str | None = None) -> None:
-    global _base_url
+    global _base_url, _logs_url, _traces_url
     _base_url = base_url or os.environ.get("NANOBOT_LMS_BACKEND_URL", "")
+    _logs_url = os.environ.get("VICTORIALOGS_URL", "http://victorialogs:9428")
+    _traces_url = os.environ.get("VICTORIATRACES_URL", "http://victoriatraces:10428")
     async with stdio_server() as (read_stream, write_stream):
         init_options = server.create_initialization_options()
         await server.run(read_stream, write_stream, init_options)

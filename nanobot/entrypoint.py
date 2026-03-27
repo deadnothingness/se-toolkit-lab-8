@@ -53,6 +53,8 @@ def main():
         "NANOBOT_LMS_BACKEND_URL", "http://backend:8000"
     )
     nanobot_lms_api_key = os.environ.get("NANOBOT_LMS_API_KEY", "")
+    victorialogs_url = os.environ.get("VICTORIALOGS_URL", "http://victorialogs:9428")
+    victoriatraces_url = os.environ.get("VICTORIATRACES_URL", "http://victoriatraces:10428")
 
     if "mcpServers" in config.get("tools", {}):
         if "lms" in config["tools"]["mcpServers"]:
@@ -65,6 +67,8 @@ def main():
             config["tools"]["mcpServers"]["lms"]["env"] = {
                 "NANOBOT_LMS_BACKEND_URL": nanobot_lms_backend_url,
                 "NANOBOT_LMS_API_KEY": nanobot_lms_api_key,
+                "VICTORIALOGS_URL": victorialogs_url,
+                "VICTORIATRACES_URL": victoriatraces_url,
             }
 
     # Write the resolved config

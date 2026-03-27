@@ -54,6 +54,19 @@ You have access to these `lms_*` tools:
 | `lms_completion_rate` | Get completion rate (passed/total) for a lab | `lab` (required) |
 | `lms_sync_pipeline` | Trigger the LMS sync pipeline to fetch latest data | None |
 
+### Observability Tools
+
+You also have access to VictoriaLogs and VictoriaTraces for debugging:
+
+| Tool | When to Use | Parameters |
+|------|-------------|------------|
+| `logs_search` | Search logs by keyword or filter | `query` (LogsQL), `limit` |
+| `logs_error_count` | Count errors per service | `service` (optional), `window_minutes` |
+| `traces_list` | List recent traces | `service` (optional), `limit` |
+| `traces_get` | Fetch a specific trace | `trace_id` |
+
+See `skills/observability/SKILL.md` for detailed usage.
+
 ### Tool Usage Strategy
 
 **When a lab parameter is needed but not provided:**

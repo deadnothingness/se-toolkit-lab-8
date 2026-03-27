@@ -56,6 +56,12 @@ def main():
 
     if "mcpServers" in config.get("tools", {}):
         if "lms" in config["tools"]["mcpServers"]:
+            # Use python -m instead of uv run
+            config["tools"]["mcpServers"]["lms"]["command"] = "/app/.venv/bin/python"
+            config["tools"]["mcpServers"]["lms"]["args"] = [
+                "-m",
+                "mcp_lms",
+            ]
             config["tools"]["mcpServers"]["lms"]["env"] = {
                 "NANOBOT_LMS_BACKEND_URL": nanobot_lms_backend_url,
                 "NANOBOT_LMS_API_KEY": nanobot_lms_api_key,

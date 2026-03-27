@@ -19,26 +19,30 @@ WORKDIR /app
 
 # Copy workspace root for MCP and webchat access
 COPY --from=workspace pyproject.toml uv.lock /app/
-COPY nanobot/pyproject.toml /app/nanobot/pyproject.toml
-COPY mcp/pyproject.toml /app/mcp/pyproject.toml
-COPY nanobot-websocket-channel/nanobot_webchat/pyproject.toml /app/nanobot-websocket-channel/nanobot_webchat/pyproject.toml
+COPY --from=workspace nanobot/pyproject.toml /app/nanobot/pyproject.toml
+COPY --from=workspace mcp/pyproject.toml /app/mcp/pyproject.toml
+COPY --from=nanobot-websocket-channel pyproject.toml /app/nanobot-websocket-channel/pyproject.toml
 
 # Sync nanobot package (includes lms-mcp from workspace)
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-workspace --package nanobot
 
 # Copy the nanobot source code
-COPY nanobot /app/nanobot
+COPY --from=workspace nanobot /app/nanobot
 
 # Copy MCP source code (needed for editable install)
-COPY mcp /app/mcp
+COPY --from=workspace mcp /app/mcp
 
 # Copy webchat channel source code
-COPY nanobot-websocket-channel /app/nanobot-websocket-channel
+COPY --from=nanobot-websocket-channel . /app/nanobot-websocket-channel
 
 # Final sync with all packages
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --package nanobot
+
+# Install nanobot-webchat from the copied source
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --editable /app/nanobot-websocket-channel
 
 # ---
 # Stage 2: Final runtime image
